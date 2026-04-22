@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import type { AuditResult } from '@/types/audit'
 import type { CityTheme } from '@/types/audit'
 import ScoreRing from './ScoreRing'
@@ -11,9 +12,18 @@ interface AuditResultsProps {
 }
 
 export default function AuditResults({ result, theme }: AuditResultsProps) {
+  const [copied, setCopied] = useState(false)
   const fails = result.checks.filter(c => c.status === 'fail').length
   const warnings = result.checks.filter(c => c.status === 'warning').length
   const passes = result.checks.filter(c => c.status === 'pass').length
+
+  function handleShare() {
+    if (!result.id) return
+    const url = `${window.location.origin}/results/${result.id}`
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', maxWidth: '680px' }}>
@@ -59,7 +69,24 @@ export default function AuditResults({ result, theme }: AuditResultsProps) {
         {theme.tagline}
       </p>
 
-      {/* V2 hook: "Save & Share Report" button → POST to /api/audit/save → returns shareable URL */}
+      {result.id && (
+        <button
+          onClick={handleShare}
+          style={{
+            background: copied ? '#2D8A4E' : 'var(--primary)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 'var(--radius)',
+            padding: '12px 20px',
+            fontSize: '14px',
+            fontWeight: 600,
+            transition: 'background 0.2s',
+            alignSelf: 'flex-start',
+          }}
+        >
+          {copied ? '✓ Link copied!' : '🔗 Share this report'}
+        </button>
+      )}
     </div>
   )
 }
