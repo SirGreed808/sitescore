@@ -10,8 +10,8 @@ import CheckItem from '@/components/CheckItem'
 type Status = 'idle' | 'streaming' | 'done' | 'error'
 
 export default function Home() {
-  const [url,            setUrl]            = useState('')
-  const [city,           setCity]           = useState('')
+  const [url,            setUrl]            = useState(() => typeof window !== 'undefined' ? localStorage.getItem('ss_url')  ?? '' : '')
+  const [city,           setCity]           = useState(() => typeof window !== 'undefined' ? localStorage.getItem('ss_city') ?? '' : '')
   const [status,         setStatus]         = useState<Status>('idle')
   const [streamedChecks, setStreamedChecks] = useState<AuditCheck[]>([])
   const [result,         setResult]         = useState<AuditResult | null>(null)
@@ -36,6 +36,8 @@ export default function Home() {
     setStreamedChecks([])
     setResult(null)
     setErrorMsg('')
+    localStorage.setItem('ss_url', url)
+    localStorage.setItem('ss_city', city)
 
     try {
       const res = await fetch('/api/audit/stream', {
