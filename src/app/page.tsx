@@ -95,8 +95,10 @@ export default function Home() {
           SiteScore
         </h1>
         <p className="text-lg" style={{ color: 'var(--muted)' }}>
-          Free local SEO audit for any US city.
-          <br />Get your score and fix list in seconds.
+          Find out why your business isn't showing up on Google.
+        </p>
+        <p className="text-sm mt-2" style={{ color: 'var(--muted)' }}>
+          We check 6 things Google looks at when ranking local businesses. Takes 10 seconds.
         </p>
       </div>
 
