@@ -1,22 +1,23 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { AuditResult } from '@/types/audit'
+import type { AuditCheck, AuditResult } from '@/types/audit'
 import { getThemeForCity } from '@/lib/themes'
 import AuditResults from '@/components/AuditResults'
+import CheckItem from '@/components/CheckItem'
 
-type Status = 'idle' | 'loading' | 'done' | 'error'
+type Status = 'idle' | 'streaming' | 'done' | 'error'
 
 export default function Home() {
   const [url, setUrl] = useState('')
   const [city, setCity] = useState('')
   const [status, setStatus] = useState<Status>('idle')
+  const [streamedChecks, setStreamedChecks] = useState<AuditCheck[]>([])
   const [result, setResult] = useState<AuditResult | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
 
   const theme = getThemeForCity(city || 'los angeles')
 
-  // Apply theme CSS variables to :root whenever theme changes
   useEffect(() => {
     const root = document.documentElement
     root.style.setProperty('--primary', theme.primaryColor)
@@ -30,30 +31,53 @@ export default function Home() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setStatus('loading')
+    setStatus('streaming')
+    setStreamedChecks([])
     setResult(null)
     setErrorMsg('')
 
     try {
-      const res = await fetch('/api/audit', {
+      const res = await fetch('/api/audit/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, city }),
       })
 
-      const data = await res.json()
+      if (!res.body) throw new Error('No response stream')
 
-      if (!res.ok) {
-        throw new Error(data.error ?? 'Audit failed')
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const parts = buffer.split('\n\n')
+        buffer = parts.pop() ?? ''
+
+        for (const part of parts) {
+          if (!part.startsWith('data: ')) continue
+          const event = JSON.parse(part.slice(6))
+
+          if (event.type === 'check') {
+            setStreamedChecks(prev => [...prev, event.check])
+          } else if (event.type === 'done') {
+            setResult(event.result)
+            setStatus('done')
+          } else if (event.type === 'error') {
+            throw new Error(event.error)
+          }
+        }
       }
-
-      setResult(data)
-      setStatus('done')
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Something went wrong')
       setStatus('error')
     }
   }
+
+  const isActive = status === 'streaming' || status === 'done'
 
   return (
     <main style={{
@@ -118,7 +142,7 @@ export default function Home() {
 
         <button
           type="submit"
-          disabled={status === 'loading'}
+          disabled={status === 'streaming'}
           style={{
             background: 'var(--primary)',
             color: '#fff',
@@ -128,16 +152,28 @@ export default function Home() {
             fontSize: '16px',
             fontWeight: 700,
             marginTop: '8px',
-            opacity: status === 'loading' ? 0.7 : 1,
+            opacity: status === 'streaming' ? 0.7 : 1,
             transition: 'opacity 0.2s',
           }}
         >
-          {status === 'loading' ? 'Auditing…' : 'Run Free Audit'}
+          {status === 'streaming' ? 'Auditing…' : 'Run Free Audit'}
         </button>
       </form>
 
       {status === 'error' && (
         <p style={{ color: '#C0392B', fontWeight: 500 }}>{errorMsg}</p>
+      )}
+
+      {/* Streaming checks — appear one by one, replaced by full results when done */}
+      {isActive && status !== 'done' && streamedChecks.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '680px' }}>
+          <p style={{ color: 'var(--muted)', fontSize: '14px', fontWeight: 500 }}>
+            Auditing {url}…
+          </p>
+          {streamedChecks.map(check => (
+            <CheckItem key={check.id} check={check} />
+          ))}
+        </div>
       )}
 
       {status === 'done' && result && (

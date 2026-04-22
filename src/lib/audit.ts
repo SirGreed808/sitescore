@@ -1,14 +1,40 @@
 import * as cheerio from 'cheerio'
 import type { AuditCheck, AuditResult } from '@/types/audit'
 
-// V2 hook: extract runChecks() separately to reuse in SSE streaming endpoint
 export async function runAudit(url: string, city: string): Promise<AuditResult> {
+  const result = await runAuditWithProgress(url, city, () => {})
+  return result
+}
+
+// Runs checks one at a time, calling onCheck after each one completes.
+// Used by the SSE streaming endpoint to push results as they arrive.
+export async function runAuditWithProgress(
+  url: string,
+  city: string,
+  onCheck: (check: AuditCheck) => void
+): Promise<AuditResult> {
   const normalizedUrl = normalizeUrl(url)
   const html = await fetchPage(normalizedUrl)
   const $ = cheerio.load(html)
-  const checks = runChecks($, normalizedUrl, city)
-  const score = calculateScore(checks)
+  const cityLower = city.toLowerCase()
 
+  const checkFns = [
+    () => checkHttps(normalizedUrl),
+    () => checkTitle($, cityLower),
+    () => checkMetaDescription($, cityLower),
+    () => checkH1($),
+    () => checkImages($),
+    () => checkCityInBody($, cityLower),
+  ]
+
+  const checks: AuditCheck[] = []
+  for (const fn of checkFns) {
+    const check = fn()
+    checks.push(check)
+    onCheck(check)
+  }
+
+  const score = calculateScore(checks)
   return {
     url: normalizedUrl,
     city,
@@ -41,20 +67,7 @@ async function fetchPage(url: string): Promise<string> {
   return res.text()
 }
 
-function runChecks($: cheerio.CheerioAPI, url: string, city: string): AuditCheck[] {
-  const cityLower = city.toLowerCase()
-
-  return [
-    checkHttps(url),
-    checkTitle($, cityLower),
-    checkMetaDescription($, cityLower),
-    checkH1($),
-    checkImages($),
-    checkCityInBody($, cityLower),
-    // V2 hook: checkRobotsTxt(url), checkSitemap(url), checkPageSpeed(url)
-    // V3 hook: checkSchemaMarkup($), checkCanonical($), checkOpenGraph($)
-  ]
-}
+// V3 hook: add checkRobotsTxt(url), checkSitemap(url), checkPageSpeed(url), checkSchemaMarkup($), checkOpenGraph($) to checkFns above
 
 function checkHttps(url: string): AuditCheck {
   const pass = url.startsWith('https://')
