@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SiteScore
 
-## Getting Started
+Free local SEO audit tool. Enter any US city and your website URL — get a score, a prioritized fix list, and a UI that matches the vibe of your city.
 
-First, run the development server:
+**Live:** [sitescore-lac.vercel.app](https://sitescore-lac.vercel.app)
+
+---
+
+## What it does
+
+SiteScore audits a webpage against 6 local SEO signals and returns a weighted 0–100 score with actionable recommendations:
+
+| Check | Weight |
+|---|---|
+| HTTPS enabled | 15 pts |
+| Page title (length + city mention) | 20 pts |
+| Meta description (length + city mention) | 20 pts |
+| H1 tag (present, only one) | 20 pts |
+| Image alt text | 10 pts |
+| City mentioned in body content | 15 pts |
+
+Results include a pass/warning/fail breakdown and a one-line fix for every issue found.
+
+## City themes
+
+The UI theme shifts based on the city you enter:
+
+| City | Vibe |
+|---|---|
+| Los Angeles | Warm coastal blues, golden hour |
+| New York | Concrete grey, cab yellow |
+| Miami | Neon pink/teal, Art Deco |
+| Seattle | Pacific greens, morning fog |
+| Any other city | Clean default |
+
+## Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Language:** TypeScript
+- **Scraping:** cheerio
+- **Deployment:** Vercel
+
+## Running locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/
+│   ├── page.tsx              # Home — form + results
+│   ├── api/audit/route.ts    # POST /api/audit endpoint
+│   └── globals.css           # Theme CSS variables
+├── components/
+│   ├── AuditResults.tsx      # Score header + check list
+│   ├── CheckItem.tsx         # Individual pass/warn/fail row
+│   └── ScoreRing.tsx         # Animated SVG score circle
+├── lib/
+│   ├── audit.ts              # Fetch, scrape, score logic
+│   └── themes.ts             # City → theme mapping
+└── types/
+    └── audit.ts              # TypeScript type definitions
+```
 
-## Learn More
+## Built by
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[Honest Dev Consulting](https://honestdev808.com) — transparent web consulting for small businesses and creators.
