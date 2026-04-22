@@ -1,14 +1,20 @@
 # SiteScore
 
-Free local SEO audit tool for small businesses. Enter any US city and your website URL — get a weighted score, a prioritized fix list, and a UI that matches the vibe of your city.
+A free local SEO audit tool for small businesses. Enter a URL and city, get a weighted 0–100 score and a prioritized fix list — streamed to the screen in real time with a UI that shifts to match the city.
 
 **Live:** [sitescore.honestdev808.com](https://sitescore.honestdev808.com)
 
+![SiteScore results page showing Miami theme with score ring and streaming check items](docs/screenshot.png)
+
 ---
 
-## What it does
+## Why I built this
 
-SiteScore audits a webpage against 6 local SEO signals and returns a weighted 0–100 score with actionable recommendations:
+Most small business owners don't know why they're invisible on Google. This tool gives them a plain-language answer in under 10 seconds — and shows off a few things I wanted to build: SSE streaming, dynamic theming via CSS variables, and a Supabase-backed shareable report URL.
+
+## How it works
+
+SiteScore fetches the page server-side, runs 6 checks, and streams each result to the client as it completes:
 
 | Check | Weight |
 |---|---|
@@ -19,18 +25,18 @@ SiteScore audits a webpage against 6 local SEO signals and returns a weighted 0�
 | Image alt text | 10 pts |
 | City mentioned in body content | 15 pts |
 
-Results stream in one by one as each check completes. Every issue includes a plain-language fix recommendation. Reports are saved to Supabase with a shareable URL.
+Every failing or warning check includes a one-line plain-language fix. The final report is saved to Supabase and gets a shareable URL (`/results/[id]`).
 
 ## City themes
 
-The UI theme shifts based on the city you enter:
+The UI theme shifts dynamically based on the city entered — CSS variables swap at runtime, including the hero gradient:
 
-| City | Vibe |
+| City | Theme |
 |---|---|
-| Los Angeles | Warm coastal blues, golden hour |
-| New York | Concrete grey, cab yellow |
-| Miami | Neon pink/teal, Art Deco |
-| Seattle | Pacific greens, morning fog |
+| Los Angeles | Warm blues + golden accent |
+| New York | Dark navy + cab yellow |
+| Miami | Teal + neon pink |
+| Seattle | Pacific greens |
 | Any other city | Clean default |
 
 ## Stack
@@ -44,17 +50,17 @@ The UI theme shifts based on the city you enter:
 
 ## Features
 
-- **SSE streaming** — checks appear one by one as they complete, with skeleton loading state
+- **SSE streaming** — checks appear one by one as they complete, with skeleton loading state before the first result
 - **Shareable reports** — every audit gets a unique URL via Supabase (`/results/[id]`)
-- **City-aware themes** — CSS variables swap at runtime per city, including hero gradient
+- **Dynamic theming** — CSS variables swap per city, applied via `useEffect` on the client
 - **Remembers last audit** — URL and city persist in localStorage
-- **Lead CTA** — score-aware call to action at the bottom of every report
 
 ## Running locally
 
 ```bash
+git clone https://github.com/SirGreed808/sitescore.git
+cd sitescore
 npm install
-npm run dev
 ```
 
 Add a `.env.local` with your Supabase credentials:
@@ -62,6 +68,10 @@ Add a `.env.local` with your Supabase credentials:
 ```
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+```
+
+```bash
+npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
@@ -79,7 +89,7 @@ src/
 │   │   └── audit/stream/route.ts # SSE streaming endpoint
 │   └── results/[id]/page.tsx     # Shareable report page
 ├── components/
-│   ├── AuditResults.tsx          # Score header + check list + lead CTA
+│   ├── AuditResults.tsx          # Score header + check list
 │   ├── CheckItem.tsx             # Individual pass/warn/fail row
 │   ├── ScoreRing.tsx             # Animated SVG score circle
 │   └── ThemeApplier.tsx          # Client-side theme swap for /results pages
