@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Share2, MapPin } from 'lucide-react'
+import { Share2, MapPin, ArrowRight } from 'lucide-react'
 import type { AuditResult, CityTheme } from '@/types/audit'
 import ScoreRing from './ScoreRing'
 import CheckItem from './CheckItem'
@@ -74,6 +74,8 @@ export default function AuditResults({ result, theme }: AuditResultsProps) {
         ))}
       </div>
 
+      <LeadCTA score={result.score} />
+
       <p className="text-center text-xs italic" style={{ color: 'var(--muted)' }}>
         {theme.tagline}
       </p>
@@ -87,5 +89,53 @@ function Pill({ count, label, color, bg }: { count: number; label: string; color
       style={{ background: bg, color }}>
       {count} {label}
     </span>
+  )
+}
+
+function LeadCTA({ score }: { score: number }) {
+  const content =
+    score < 50
+      ? {
+          headline: 'Your business is nearly invisible online.',
+          body: "Most customers search before they call. Right now they're finding your competitors instead.",
+          cta: 'Book a free 15-min call',
+        }
+      : score < 70
+      ? {
+          headline: "You're leaving rankings on the table.",
+          body: "A few targeted fixes could move you from page 2 to page 1. We've done it for businesses just like yours.",
+          cta: 'See how we can help',
+        }
+      : {
+          headline: "Solid foundation — let's take it further.",
+          body: 'Professional SEO management can turn good visibility into a steady stream of new customers.',
+          cta: 'Talk to us',
+        }
+
+  return (
+    <div className="rounded-2xl p-6"
+      style={{ background: 'var(--card)', border: '1.5px solid var(--primary)', boxShadow: 'var(--shadow)' }}>
+      <p className="font-heading font-bold text-base mb-1" style={{ color: 'var(--text)' }}>
+        {content.headline}
+      </p>
+      <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+        {content.body}
+      </p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <a
+          href="https://honestdev808.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-opacity duration-200 hover:opacity-85 cursor-pointer"
+          style={{ background: 'var(--primary)', color: '#fff' }}
+        >
+          {content.cta}
+          <ArrowRight size={14} strokeWidth={2.5} />
+        </a>
+        <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
+          Honest Dev Consulting
+        </span>
+      </div>
+    </div>
   )
 }
