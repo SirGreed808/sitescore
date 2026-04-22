@@ -1,8 +1,8 @@
 # SiteScore
 
-Free local SEO audit tool. Enter any US city and your website URL — get a score, a prioritized fix list, and a UI that matches the vibe of your city.
+Free local SEO audit tool for small businesses. Enter any US city and your website URL — get a weighted score, a prioritized fix list, and a UI that matches the vibe of your city.
 
-**Live:** [sitescore-lac.vercel.app](https://sitescore-lac.vercel.app)
+**Live:** [sitescore.honestdev808.com](https://sitescore.honestdev808.com)
 
 ---
 
@@ -19,7 +19,7 @@ SiteScore audits a webpage against 6 local SEO signals and returns a weighted 0�
 | Image alt text | 10 pts |
 | City mentioned in body content | 15 pts |
 
-Results include a pass/warning/fail breakdown and a one-line fix for every issue found.
+Results stream in one by one as each check completes. Every issue includes a plain-language fix recommendation. Reports are saved to Supabase with a shareable URL.
 
 ## City themes
 
@@ -37,14 +37,31 @@ The UI theme shifts based on the city you enter:
 
 - **Framework:** Next.js 16 (App Router)
 - **Language:** TypeScript
+- **Styling:** Tailwind v3 + CSS variables
 - **Scraping:** cheerio
+- **Database:** Supabase (PostgreSQL)
 - **Deployment:** Vercel
+
+## Features
+
+- **SSE streaming** — checks appear one by one as they complete, with skeleton loading state
+- **Shareable reports** — every audit gets a unique URL via Supabase (`/results/[id]`)
+- **City-aware themes** — CSS variables swap at runtime per city, including hero gradient
+- **Remembers last audit** — URL and city persist in localStorage
+- **Lead CTA** — score-aware call to action at the bottom of every report
 
 ## Running locally
 
 ```bash
 npm install
 npm run dev
+```
+
+Add a `.env.local` with your Supabase credentials:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
@@ -54,18 +71,24 @@ Open [http://localhost:3000](http://localhost:3000).
 ```
 src/
 ├── app/
-│   ├── page.tsx              # Home — form + results
-│   ├── api/audit/route.ts    # POST /api/audit endpoint
-│   └── globals.css           # Theme CSS variables
+│   ├── page.tsx                  # Home — form + streaming results
+│   ├── layout.tsx                # Fonts + metadata
+│   ├── globals.css               # Theme tokens + animations
+│   ├── api/
+│   │   ├── audit/route.ts        # POST /api/audit
+│   │   └── audit/stream/route.ts # SSE streaming endpoint
+│   └── results/[id]/page.tsx     # Shareable report page
 ├── components/
-│   ├── AuditResults.tsx      # Score header + check list
-│   ├── CheckItem.tsx         # Individual pass/warn/fail row
-│   └── ScoreRing.tsx         # Animated SVG score circle
+│   ├── AuditResults.tsx          # Score header + check list + lead CTA
+│   ├── CheckItem.tsx             # Individual pass/warn/fail row
+│   ├── ScoreRing.tsx             # Animated SVG score circle
+│   └── ThemeApplier.tsx          # Client-side theme swap for /results pages
 ├── lib/
-│   ├── audit.ts              # Fetch, scrape, score logic
-│   └── themes.ts             # City → theme mapping
+│   ├── audit.ts                  # Fetch, scrape, score logic
+│   ├── themes.ts                 # City → theme mapping
+│   └── supabase.ts               # Save + fetch audit reports
 └── types/
-    └── audit.ts              # TypeScript type definitions
+    └── audit.ts                  # TypeScript interfaces
 ```
 
 ## Built by
