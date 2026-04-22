@@ -70,4 +70,4 @@ src/
 
 ## Built by
 
-[Honest Dev Consulting](https://honestdev808.com) — transparent web consulting for small businesses and creators.
+[Honest Dev Consulting](https://honestdev808.com) — transparent consulting for small businesses and creators.
