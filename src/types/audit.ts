@@ -1,0 +1,43 @@
+// V2 hook: add 'streaming' status for SSE progress updates
+export type CheckStatus = 'pass' | 'fail' | 'warning'
+
+export interface AuditCheck {
+  id: string
+  label: string
+  status: CheckStatus
+  value: string | null  // what we found
+  recommendation: string | null  // what to fix, null if passing
+}
+
+export interface AuditResult {
+  url: string
+  city: string
+  score: number          // 0-100
+  checks: AuditCheck[]
+  auditedAt: string      // ISO timestamp
+  // V2 hook: id string for shareable URLs (populated when saved to Supabase)
+  id?: string
+}
+
+export interface AuditRequest {
+  url: string
+  city: string
+}
+
+// City themes
+export type ThemeKey = 'los-angeles' | 'new-york' | 'miami' | 'seattle' | 'default'
+
+export interface CityTheme {
+  key: ThemeKey
+  label: string
+  // CSS variable values injected at runtime
+  primaryColor: string
+  secondaryColor: string
+  accentColor: string
+  backgroundColor: string
+  cardColor: string
+  textColor: string
+  mutedColor: string
+  emoji: string
+  tagline: string
+}
