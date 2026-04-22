@@ -17,7 +17,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'SiteScore — Local SEO Audit Tool',
-  description: 'Free local SEO audit for any US city. Get your score and fix list in seconds.',
+  description: 'Free local SEO audit for small businesses in any US city. Get your score and a prioritized fix list in seconds.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

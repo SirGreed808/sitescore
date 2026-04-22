@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, MapPin } from 'lucide-react'
+import { Search, MapPin, CheckCircle2 } from 'lucide-react'
 import type { AuditCheck, AuditResult } from '@/types/audit'
 import { getThemeForCity } from '@/lib/themes'
 import AuditResults from '@/components/AuditResults'
@@ -81,25 +81,43 @@ export default function Home() {
   const isStreaming = status === 'streaming'
 
   return (
-    <main className="min-h-screen flex flex-col items-center px-5 py-16 gap-10"
+    <main className="relative min-h-screen flex flex-col items-center px-5 py-16 gap-10"
       style={{ background: 'var(--bg)' }}>
 
+      {/* City-tinted hero glow */}
+      <div className="absolute inset-x-0 top-0 h-[480px] pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.08]"
+          style={{ background: 'radial-gradient(ellipse 80% 100% at 50% 0%, var(--primary), transparent 70%)' }} />
+      </div>
+
       {/* Hero */}
-      <div className="text-center max-w-xl">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5"
+      <div className="relative text-center max-w-xl">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5"
           style={{ background: 'var(--primary)' }}>
-          <MapPin size={26} color="#fff" strokeWidth={2.5} />
+          <MapPin size={28} color="#fff" strokeWidth={2.5} />
         </div>
         <h1 className="font-heading font-extrabold text-5xl mb-3 leading-tight"
           style={{ color: 'var(--text)' }}>
           SiteScore
         </h1>
-        <p className="text-lg" style={{ color: 'var(--muted)' }}>
+        <p className="text-lg font-medium" style={{ color: 'var(--text)' }}>
           Find out why your business isn't showing up on Google.
         </p>
-        <p className="text-sm mt-2" style={{ color: 'var(--muted)' }}>
+        <p className="text-sm mt-2 mb-5" style={{ color: 'var(--muted)' }}>
           We check 6 things Google looks at when ranking local businesses. Takes 10 seconds.
         </p>
+        <div className="flex flex-col items-center gap-1.5">
+          {[
+            'HTTPS security, page title & meta description',
+            'H1 headings, image alt text & city mentions',
+            'Prioritized fix recommendations included',
+          ].map(item => (
+            <div key={item} className="flex items-center gap-2 text-sm" style={{ color: 'var(--muted)' }}>
+              <CheckCircle2 size={13} color="var(--accent)" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+              {item}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Form */}
@@ -165,6 +183,19 @@ export default function Home() {
 
       {status === 'error' && (
         <p className="text-sm font-medium" style={{ color: '#C0392B' }}>{errorMsg}</p>
+      )}
+
+      {/* Initial loading state — before first check arrives */}
+      {isStreaming && streamedChecks.length === 0 && (
+        <div className="flex flex-col gap-2.5 w-full max-w-2xl">
+          <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
+            Fetching <span className="font-semibold" style={{ color: 'var(--text)' }}>{url}</span>…
+          </p>
+          {[0, 1, 2].map(i => (
+            <div key={i} className="skeleton-pulse w-full h-14 rounded-xl"
+              style={{ background: 'var(--border)', animationDelay: `${i * 0.2}s` }} />
+          ))}
+        </div>
       )}
 
       {/* Streaming checks — animate in one by one */}

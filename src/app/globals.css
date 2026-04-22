@@ -32,13 +32,38 @@ h1, h2, h3, h4, h5, h6 {
 
 a { color: var(--primary); text-decoration: none; }
 
+/* Score ring label colors */
+.score-high { color: #2D8A4E; }
+.score-mid  { color: #C27A1A; }
+.score-low  { color: #C0392B; }
+
 @layer utilities {
   .check-enter {
     animation: slideIn 0.25s ease-out both;
+  }
+  .fade-scale-in {
+    animation: fadeScaleIn 0.45s ease-out both;
+  }
+  .skeleton-pulse {
+    animation: skeletonShimmer 1.4s ease-in-out infinite;
   }
 }
 
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeScaleIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes skeletonShimmer {
+  0%, 100% { opacity: 0.35; }
+  50%       { opacity: 0.65; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .check-enter, .fade-scale-in, .skeleton-pulse { animation: none; }
 }

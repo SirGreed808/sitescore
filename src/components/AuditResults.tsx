@@ -26,7 +26,7 @@ export default function AuditResults({ result, theme }: AuditResultsProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-2xl">
+    <div className="flex flex-col gap-4 w-full max-w-2xl fade-scale-in">
 
       {/* Score header card */}
       <div className="rounded-2xl p-6 flex flex-wrap items-center gap-6"

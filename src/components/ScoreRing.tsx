@@ -16,7 +16,7 @@ export default function ScoreRing({ score }: ScoreRingProps) {
     score >= 70 ? '#2D8A4E' : score >= 40 ? '#C27A1A' : '#C0392B'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+    <div className="flex flex-col items-center gap-2 fade-scale-in">
       <svg width="128" height="128" viewBox="0 0 128 128">
         {/* Track */}
         <circle
