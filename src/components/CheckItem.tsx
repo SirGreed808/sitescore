@@ -1,38 +1,42 @@
+import { CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
 import type { AuditCheck } from '@/types/audit'
 
-const ICONS: Record<string, string> = {
-  pass: '✓',
-  warning: '⚠',
-  fail: '✗',
+const CONFIG = {
+  pass:    { Icon: CheckCircle2,  color: '#2D8A4E', bg: '#F0FFF4', border: '#C6F6D5' },
+  warning: { Icon: AlertTriangle, color: '#C27A1A', bg: '#FFFBEB', border: '#FEF3C7' },
+  fail:    { Icon: XCircle,       color: '#C0392B', bg: '#FFF5F5', border: '#FED7D7' },
 }
 
-export default function CheckItem({ check }: { check: AuditCheck }) {
-  const bgClass = `status-${check.status}-bg`
+export default function CheckItem({ check, animate = false }: { check: AuditCheck; animate?: boolean }) {
+  const { Icon, color, bg, border } = CONFIG[check.status]
 
   return (
     <div
-      className={bgClass}
+      className={animate ? 'check-enter' : ''}
       style={{
-        borderRadius: 'var(--radius)',
+        background: bg,
+        border: `1px solid ${border}`,
+        borderLeft: `4px solid ${color}`,
+        borderRadius: '10px',
         padding: '14px 16px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '4px',
+        gap: '6px',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span className={`status-${check.status}`} style={{ fontWeight: 700, fontSize: '16px', minWidth: '16px' }}>
-          {ICONS[check.status]}
+      <div className="flex items-center gap-3">
+        <Icon size={18} color={color} strokeWidth={2.5} style={{ flexShrink: 0 }} />
+        <span className="font-semibold text-sm flex-1" style={{ color: 'var(--text)' }}>
+          {check.label}
         </span>
-        <span style={{ fontWeight: 600, fontSize: '15px' }}>{check.label}</span>
         {check.value && (
-          <span style={{ color: 'var(--muted)', fontSize: '13px', marginLeft: 'auto' }}>
+          <span className="text-xs font-medium ml-auto" style={{ color: 'var(--muted)' }}>
             {check.value}
           </span>
         )}
       </div>
       {check.recommendation && (
-        <p style={{ fontSize: '13px', color: 'var(--muted)', paddingLeft: '26px', lineHeight: '1.5' }}>
+        <p className="text-xs leading-relaxed pl-7" style={{ color: 'var(--muted)' }}>
           {check.recommendation}
         </p>
       )}
