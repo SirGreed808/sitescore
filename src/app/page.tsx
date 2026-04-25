@@ -334,7 +334,7 @@ export default function Home() {
           className="w-full max-w-2xl font-mono text-sm"
           style={{
             color: 'var(--muted)',
-            opacity: status === 'done' ? 0 : 1,
+            opacity: 1,
             transition: 'opacity 300ms ease',
           }}
         >
