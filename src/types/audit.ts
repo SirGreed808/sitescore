@@ -25,7 +25,7 @@ export interface AuditRequest {
 }
 
 // City themes
-export type ThemeKey = 'los-angeles' | 'new-york' | 'miami' | 'seattle' | 'default'
+export type ThemeKey = 'los-angeles' | 'new-york' | 'miami' | 'seattle' | 'chicago' | 'austin' | 'denver' | 'portland' | 'nashville' | 'new-orleans' | 'san-francisco' | 'boston' | 'atlanta' | 'phoenix' | 'las-vegas' | 'honolulu' | 'default'
 
 export interface CityTheme {
   key: ThemeKey
@@ -38,6 +38,8 @@ export interface CityTheme {
   cardColor: string
   textColor: string
   mutedColor: string
+  // RGB string for rgba() effects (e.g. "26, 111, 168")
+  primaryRgb: string
   emoji: string
   tagline: string
 }

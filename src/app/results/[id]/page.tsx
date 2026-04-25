@@ -3,6 +3,7 @@ import { getAudit } from '@/lib/supabase'
 import { getThemeForCity } from '@/lib/themes'
 import AuditResults from '@/components/AuditResults'
 import ThemeApplier from '@/components/ThemeApplier'
+import { ArrowLeft } from 'lucide-react'
 
 export default async function ResultsPage({
   params,
@@ -35,13 +36,17 @@ export default async function ResultsPage({
 
         <AuditResults result={result} theme={theme} />
 
-        <a href="/" style={{
-          color: 'var(--primary)',
-          fontWeight: 600,
-          fontSize: '14px',
-          textDecoration: 'underline',
-        }}>
-          Audit your own site →
+        <a
+          href="/"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-opacity duration-200 hover:opacity-80"
+          style={{
+            color: 'var(--primary)',
+            border: '1px solid var(--border)',
+            textDecoration: 'none',
+          }}
+        >
+          <ArrowLeft size={14} strokeWidth={2.5} />
+          Audit your own site
         </a>
       </main>
     </>

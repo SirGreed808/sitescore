@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Share2, MapPin, ArrowRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Share2, CheckCheck, MapPin, ArrowRight } from 'lucide-react'
 import type { AuditResult, CityTheme } from '@/types/audit'
 import ScoreRing from './ScoreRing'
 import CheckItem from './CheckItem'
@@ -12,17 +13,24 @@ interface AuditResultsProps {
 }
 
 export default function AuditResults({ result, theme }: AuditResultsProps) {
+  const router = useRouter()
   const [copied, setCopied] = useState(false)
 
-  const fails    = result.checks.filter(c => c.status === 'fail').length
+  const fails = result.checks.filter(c => c.status === 'fail').length
   const warnings = result.checks.filter(c => c.status === 'warning').length
-  const passes   = result.checks.filter(c => c.status === 'pass').length
+  const passes = result.checks.filter(c => c.status === 'pass').length
 
   function handleShare() {
     if (!result.id) return
     navigator.clipboard.writeText(`${window.location.origin}/results/${result.id}`)
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setTimeout(() => setCopied(false), 2500)
+  }
+
+  function handleCompareCity() {
+    localStorage.setItem('ss_url', result.url)
+    localStorage.setItem('ss_city', '')
+    router.push('/')
   }
 
   return (
@@ -44,37 +52,80 @@ export default function AuditResults({ result, theme }: AuditResultsProps) {
           <p className="text-xs mb-4 break-all" style={{ color: 'var(--muted)' }}>{result.url}</p>
 
           <div className="flex gap-2 flex-wrap">
-            <Pill count={passes}   label="Passing"  color="#2D8A4E" bg="#F0FFF4" />
+            <Pill count={passes} label="Passing" color="#2D8A4E" bg="#F0FFF4" />
             <Pill count={warnings} label="Warnings" color="#C27A1A" bg="#FFFBEB" />
-            <Pill count={fails}    label="Failing"  color="#C0392B" bg="#FFF5F5" />
+            <Pill count={fails} label="Failing" color="#C0392B" bg="#FFF5F5" />
           </div>
         </div>
 
         {result.id && (
           <button
             onClick={handleShare}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-opacity duration-200 hover:opacity-80 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer"
             style={{
               background: copied ? '#2D8A4E' : 'var(--primary)',
               color: '#fff',
               border: 'none',
               flexShrink: 0,
+              transition: 'all 200ms ease',
+              transform: copied ? 'scale(1)' : undefined,
+            }}
+            onMouseDown={e => {
+              const el = e.currentTarget as HTMLButtonElement
+              el.style.transform = 'scale(0.95)'
+            }}
+            onMouseUp={e => {
+              const el = e.currentTarget as HTMLButtonElement
+              el.style.transform = 'scale(1)'
+            }}
+            onMouseLeave={e => {
+              const el = e.currentTarget as HTMLButtonElement
+              el.style.transform = 'scale(1)'
             }}
           >
-            <Share2 size={15} strokeWidth={2.5} />
-            {copied ? 'Copied!' : 'Share'}
+            {copied ? <CheckCheck size={15} strokeWidth={2.5} /> : <Share2 size={15} strokeWidth={2.5} />}
+            <span style={{ transition: 'all 200ms ease' }}>
+              {copied ? 'Link copied' : 'Share'}
+            </span>
           </button>
         )}
       </div>
 
-      {/* Check list */}
-      <div className="flex flex-col gap-2.5">
+      {/* Check list — staggered reveal */}
+      <div
+        className="flex flex-col gap-2.5"
+        style={{ animation: 'fadeScaleIn 0.45s ease-out 300ms both' }}
+      >
         {result.checks.map(check => (
           <CheckItem key={check.id} check={check} />
         ))}
       </div>
 
       <LeadCTA score={result.score} />
+
+      {/* Compare with another city */}
+      <div
+        className="flex items-center justify-between gap-3"
+        style={{
+          fontSize: '0.875rem',
+          color: 'var(--muted)',
+          borderTop: '1px solid var(--border)',
+          paddingTop: '1rem',
+          marginTop: '1.5rem',
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <MapPin size={14} strokeWidth={2} />
+          <span>How does this score compare in another city?</span>
+        </div>
+        <button
+          onClick={handleCompareCity}
+          className="font-semibold cursor-pointer hover:underline"
+          style={{ color: 'var(--primary)', background: 'none', border: 'none' }}
+        >
+          Try another city →
+        </button>
+      </div>
 
       <p className="text-center text-xs italic" style={{ color: 'var(--muted)' }}>
         {theme.tagline}

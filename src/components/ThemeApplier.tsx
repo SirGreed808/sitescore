@@ -13,6 +13,8 @@ export default function ThemeApplier({ theme }: { theme: CityTheme }) {
     root.style.setProperty('--card', theme.cardColor)
     root.style.setProperty('--text', theme.textColor)
     root.style.setProperty('--muted', theme.mutedColor)
+    root.style.setProperty('--border', '#E5E7EB')
+    root.style.setProperty('--primary-rgb', theme.primaryRgb)
   }, [theme])
 
   return null

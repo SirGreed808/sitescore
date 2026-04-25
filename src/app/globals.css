@@ -67,3 +67,98 @@ a { color: var(--primary); text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
   .check-enter, .fade-scale-in, .skeleton-pulse { animation: none; }
 }
+
+/* Cursor blink for rolling status feed */
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.cursor-blink {
+  animation: cursorBlink 0.8s step-end infinite;
+}
+
+/* Pass check icon entrance */
+@keyframes iconPop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.icon-pop {
+  animation: iconPop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Row flash (pass) */
+@keyframes passFlash {
+  0% { background-color: rgba(45, 138, 78, 0.12); }
+  100% { background-color: transparent; }
+}
+.pass-flash {
+  animation: passFlash 150ms ease-out both;
+}
+
+/* Row flash (warning) */
+@keyframes warnFlash {
+  0% { background-color: rgba(194, 122, 26, 0.12); }
+  100% { background-color: transparent; }
+}
+.warn-flash {
+  animation: warnFlash 150ms ease-out both;
+}
+
+/* Row flash (fail) */
+@keyframes failFlash {
+  0% { background-color: rgba(192, 57, 43, 0.12); }
+  100% { background-color: transparent; }
+}
+.fail-flash {
+  animation: failFlash 200ms ease-out both;
+}
+
+/* Icon shake (fail) */
+@keyframes iconShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+.icon-shake {
+  animation: iconShake 350ms ease both;
+}
+
+/* Icon nudge (warning) */
+@keyframes iconNudge {
+  0%, 100% { transform: translateX(0); }
+  33% { transform: translateX(-2px); }
+  66% { transform: translateX(2px); }
+}
+.icon-nudge {
+  animation: iconNudge 250ms ease both;
+}
+
+/* Score ring glow pulse (single) */
+@keyframes ringGlow {
+  0% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4); }
+  100% { box-shadow: 0 0 0 12px rgba(var(--primary-rgb), 0); }
+}
+.ring-glow {
+  animation: ringGlow 600ms ease-out both;
+}
+
+/* Status label pulse (score < 50) */
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0.5; }
+}
+.status-pulse {
+  animation: statusPulse 1.2s ease-in-out both;
+}
+
+/* Slide up for status label reveal */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.slide-up {
+  animation: slideUp 0.35s ease-out both;
+}

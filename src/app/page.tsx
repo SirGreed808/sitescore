@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Search, MapPin, CheckCircle2 } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Search, MapPin, CheckCircle2, Loader2 } from 'lucide-react'
 import type { AuditCheck, AuditResult } from '@/types/audit'
 import { getThemeForCity } from '@/lib/themes'
 import AuditResults from '@/components/AuditResults'
@@ -9,48 +9,102 @@ import CheckItem from '@/components/CheckItem'
 
 type Status = 'idle' | 'streaming' | 'done' | 'error'
 
+interface HistoryItem {
+  url: string
+  city: string
+  score: number
+  id: string
+}
+
+const ROLLING_MESSAGES = [
+  '> Connecting to target...',
+  '> Fetching page source...',
+  '> Parsing HTML structure...',
+  '> Running diagnostics...',
+  '> Analyzing on-page signals...',
+  '> Cross-checking local markers...',
+]
+
 export default function Home() {
-  const [url,            setUrl]            = useState(() => typeof window !== 'undefined' ? localStorage.getItem('ss_url')  ?? '' : '')
-  const [city,           setCity]           = useState(() => typeof window !== 'undefined' ? localStorage.getItem('ss_city') ?? '' : '')
-  const [status,         setStatus]         = useState<Status>('idle')
+  const [url, setUrl] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('ss_url') ?? '' : '')
+  const [city, setCity] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('ss_city') ?? '' : '')
+  const [status, setStatus] = useState<Status>('idle')
   const [streamedChecks, setStreamedChecks] = useState<AuditCheck[]>([])
-  const [result,         setResult]         = useState<AuditResult | null>(null)
-  const [errorMsg,       setErrorMsg]       = useState('')
+  const [result, setResult] = useState<AuditResult | null>(null)
+  const [errorMsg, setErrorMsg] = useState('')
+  const [history, setHistory] = useState<HistoryItem[]>(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      const raw = localStorage.getItem('ss_history')
+      return raw ? JSON.parse(raw) : []
+    } catch {
+      return []
+    }
+  })
 
   const theme = getThemeForCity(city || 'los angeles')
 
   useEffect(() => {
     const root = document.documentElement
-    root.style.setProperty('--primary',    theme.primaryColor)
-    root.style.setProperty('--secondary',  theme.secondaryColor)
-    root.style.setProperty('--accent',     theme.accentColor)
-    root.style.setProperty('--bg',         theme.backgroundColor)
-    root.style.setProperty('--card',       theme.cardColor)
-    root.style.setProperty('--text',       theme.textColor)
-    root.style.setProperty('--muted',      theme.mutedColor)
+    root.style.setProperty('--primary', theme.primaryColor)
+    root.style.setProperty('--secondary', theme.secondaryColor)
+    root.style.setProperty('--accent', theme.accentColor)
+    root.style.setProperty('--bg', theme.backgroundColor)
+    root.style.setProperty('--card', theme.cardColor)
+    root.style.setProperty('--text', theme.textColor)
+    root.style.setProperty('--muted', theme.mutedColor)
+    root.style.setProperty('--border', '#E5E7EB')
+    root.style.setProperty('--primary-rgb', theme.primaryRgb)
   }, [theme])
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  const rollingIndexRef = useRef(0)
+  const rollingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [rollingMessage, setRollingMessage] = useState(ROLLING_MESSAGES[0])
+
+  function startRollingMessages() {
+    rollingIndexRef.current = 0
+    setRollingMessage(ROLLING_MESSAGES[0])
+
+    function cycle() {
+      rollingTimerRef.current = setTimeout(() => {
+        rollingIndexRef.current = (rollingIndexRef.current + 1) % ROLLING_MESSAGES.length
+        setRollingMessage(ROLLING_MESSAGES[rollingIndexRef.current])
+        cycle()
+      }, 900)
+    }
+    cycle()
+  }
+
+  function stopRollingMessages() {
+    if (rollingTimerRef.current) {
+      clearTimeout(rollingTimerRef.current)
+      rollingTimerRef.current = null
+    }
+  }
+
+  const runAudit = useCallback(async (auditUrl: string, auditCity: string) => {
+    setUrl(auditUrl)
+    setCity(auditCity)
     setStatus('streaming')
     setStreamedChecks([])
     setResult(null)
     setErrorMsg('')
-    localStorage.setItem('ss_url', url)
-    localStorage.setItem('ss_city', city)
+    localStorage.setItem('ss_url', auditUrl)
+    localStorage.setItem('ss_city', auditCity)
+    startRollingMessages()
 
     try {
       const res = await fetch('/api/audit/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, city }),
+        body: JSON.stringify({ url: auditUrl, city: auditCity }),
       })
 
       if (!res.body) throw new Error('No response stream')
 
-      const reader  = res.body.getReader()
+      const reader = res.body.getReader()
       const decoder = new TextDecoder()
-      let buffer    = ''
+      let buffer = ''
 
       while (true) {
         const { done, value } = await reader.read()
@@ -65,22 +119,54 @@ export default function Home() {
           const event = JSON.parse(part.slice(6))
 
           if (event.type === 'check') {
-            setStreamedChecks(prev => [...prev, event.check])
+            setStreamedChecks(prev => {
+              const next = [...prev, event.check]
+              return next
+            })
           } else if (event.type === 'done') {
+            stopRollingMessages()
             setResult(event.result)
             setStatus('done')
+
+            // Save to history
+            if (event.result.id) {
+              setHistory(prev => {
+                const next = [{
+                  url: event.result.url,
+                  city: event.result.city,
+                  score: event.result.score,
+                  id: event.result.id,
+                }, ...prev].slice(0, 3)
+                localStorage.setItem('ss_history', JSON.stringify(next))
+                return next
+              })
+            }
           } else if (event.type === 'error') {
             throw new Error(event.error)
           }
         }
       }
     } catch (err) {
+      stopRollingMessages()
       setErrorMsg(err instanceof Error ? err.message : 'Something went wrong')
       setStatus('error')
     }
+  }, [])
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    await runAudit(url, city)
   }
 
   const isStreaming = status === 'streaming'
+  const completedCheckCount = streamedChecks.length
+  const isRolling = isStreaming && completedCheckCount === 0
+
+  const statusLineText = isStreaming && completedCheckCount > 0
+    ? `> Check ${Math.min(completedCheckCount, 6)} of 6 complete`
+    : rollingMessage
+
+  const showStatusLine = isStreaming
 
   return (
     <main className="relative min-h-screen flex flex-col items-center px-5 py-16 gap-10"
@@ -139,12 +225,16 @@ export default function Home() {
             onChange={e => setUrl(e.target.value)}
             placeholder="yourbusiness.com"
             required
-            className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-shadow duration-150
+            disabled={isStreaming}
+            className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all duration-200
               focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-1"
             style={{
-              border:     '1.5px solid var(--border)',
+              border: '1.5px solid var(--border)',
               background: 'var(--bg)',
-              color:      'var(--text)',
+              color: 'var(--text)',
+              pointerEvents: isStreaming ? 'none' : 'auto',
+              opacity: isStreaming ? 0.6 : 1,
+              transition: 'opacity 200ms ease',
             }}
           />
         </div>
@@ -160,12 +250,16 @@ export default function Home() {
             onChange={e => setCity(e.target.value)}
             placeholder="Los Angeles"
             required
-            className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-shadow duration-150
+            disabled={isStreaming}
+            className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all duration-200
               focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-1"
             style={{
-              border:     '1.5px solid var(--border)',
+              border: '1.5px solid var(--border)',
               background: 'var(--bg)',
-              color:      'var(--text)',
+              color: 'var(--text)',
+              pointerEvents: isStreaming ? 'none' : 'auto',
+              opacity: isStreaming ? 0.6 : 1,
+              transition: 'opacity 200ms ease',
             }}
           />
         </div>
@@ -178,21 +272,80 @@ export default function Home() {
             hover:opacity-90 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
           style={{ background: 'var(--primary)', border: 'none' }}
         >
-          <Search size={18} strokeWidth={2.5} />
-          {isStreaming ? 'Auditing…' : 'Run Free Audit'}
+          {isStreaming ? (
+            <>
+              <Loader2 size={18} strokeWidth={2.5} className="animate-spin" />
+              Scanning...
+            </>
+          ) : (
+            <>
+              <Search size={18} strokeWidth={2.5} />
+              Run Free Audit
+            </>
+          )}
         </button>
       </form>
+
+      {/* History chips */}
+      {history.length > 0 && (
+        <div className="w-full max-w-lg flex items-center gap-2 flex-wrap slide-up">
+          <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>Recent:</span>
+          {history.map((item, i) => {
+            const scoreColor = item.score >= 70 ? '#2D8A4E' : item.score >= 40 ? '#C27A1A' : '#C0392B'
+            return (
+              <button
+                key={`${item.id}-${i}`}
+                onClick={() => runAudit(item.url, item.city)}
+                className="cursor-pointer"
+                style={{
+                  border: '1px solid var(--border)',
+                  borderRadius: '20px',
+                  padding: '4px 12px',
+                  fontSize: '0.75rem',
+                  background: 'var(--card)',
+                  color: 'var(--text)',
+                  whiteSpace: 'nowrap',
+                  transition: 'opacity 200ms ease, transform 200ms ease',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '0.85' }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+              >
+                {(() => {
+                  try {
+                    return new URL(item.url).hostname.replace(/^www\./, '')
+                  } catch {
+                    return item.url
+                  }
+                })()} / {item.city}{' '}
+                <span style={{ color: scoreColor, fontWeight: 600 }}>— {item.score}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       {status === 'error' && (
         <p className="text-sm font-medium" style={{ color: '#C0392B' }}>{errorMsg}</p>
       )}
 
+      {/* Status line */}
+      {showStatusLine && (
+        <div
+          className="w-full max-w-2xl font-mono text-sm"
+          style={{
+            color: 'var(--muted)',
+            opacity: status === 'done' ? 0 : 1,
+            transition: 'opacity 300ms ease',
+          }}
+        >
+          {statusLineText}
+          <span className="cursor-blink ml-0.5">▍</span>
+        </div>
+      )}
+
       {/* Initial loading state — before first check arrives */}
       {isStreaming && streamedChecks.length === 0 && (
         <div className="flex flex-col gap-2.5 w-full max-w-2xl">
-          <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
-            Fetching <span className="font-semibold" style={{ color: 'var(--text)' }}>{url}</span>…
-          </p>
           {[0, 1, 2].map(i => (
             <div key={i} className="skeleton-pulse w-full h-14 rounded-xl"
               style={{ background: 'var(--border)', animationDelay: `${i * 0.2}s` }} />
@@ -203,9 +356,6 @@ export default function Home() {
       {/* Streaming checks — animate in one by one */}
       {isStreaming && streamedChecks.length > 0 && (
         <div className="flex flex-col gap-2.5 w-full max-w-2xl">
-          <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
-            Auditing <span className="font-semibold" style={{ color: 'var(--text)' }}>{url}</span>…
-          </p>
           {streamedChecks.map(check => (
             <CheckItem key={check.id} check={check} animate />
           ))}
