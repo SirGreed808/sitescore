@@ -2,70 +2,94 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme tokens — swapped per city via JS on form submit */
+/* ============================================================
+   SiteScore — Bright, Bold, Playful Design System
+   Palette: Electric Yellow #FFD600 + Cobalt #2563EB + Coral #FF6B6B
+   ============================================================ */
+
 :root {
-  --primary: #6366F1;
-  --secondary: #818CF8;
-  --accent: #10B981;
-  --bg: #F5F3FF;
+  --primary: #2563EB;
+  --secondary: #FFD600;
+  --accent: #FF6B6B;
+  --bg: #FAFBFF;
   --card: #FFFFFF;
-  --text: #1E1B4B;
+  --text: #1A1A2E;
   --muted: #6B7280;
-  --border: #E5E7EB;
-  --radius: 14px;
-  --shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+  --border: #E2E8F0;
+  --radius: 20px;
+  --shadow: 0 8px 32px rgba(37, 99, 235, 0.12);
 }
 
 body {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-body), system-ui, sans-serif;
   background-color: var(--bg);
   color: var(--text);
   line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.4s ease, color 0.4s ease;
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-poppins), system-ui, sans-serif;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 a { color: var(--primary); text-decoration: none; }
 
 /* Score ring label colors */
-.score-high { color: #2D8A4E; }
-.score-mid  { color: #C27A1A; }
-.score-low  { color: #C0392B; }
+.score-high { color: #16A34A; }
+.score-mid  { color: #D97706; }
+.score-low  { color: #DC2626; }
 
 @layer utilities {
   .check-enter {
-    animation: slideIn 0.25s ease-out both;
+    animation: slideIn 0.3s ease-out both;
   }
   .fade-scale-in {
-    animation: fadeScaleIn 0.45s ease-out both;
+    animation: fadeScaleIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
   .skeleton-pulse {
     animation: skeletonShimmer 1.4s ease-in-out infinite;
   }
+  .hero-pop {
+    animation: heroPop 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .hero-pop-delay-1 {
+    animation: heroPop 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+  }
+  .hero-pop-delay-2 {
+    animation: heroPop 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+  }
+  .hero-pop-delay-3 {
+    animation: heroPop 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+  }
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(12px) rotate(-0.5deg); }
+  to   { opacity: 1; transform: translateY(0) rotate(0deg); }
 }
 
 @keyframes fadeScaleIn {
-  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  from { opacity: 0; transform: scale(0.94) translateY(16px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+@keyframes heroPop {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 @keyframes skeletonShimmer {
-  0%, 100% { opacity: 0.35; }
-  50%       { opacity: 0.65; }
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 0.6; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .check-enter, .fade-scale-in, .skeleton-pulse { animation: none; }
+  .check-enter, .fade-scale-in, .skeleton-pulse,
+  .hero-pop, .hero-pop-delay-1, .hero-pop-delay-2, .hero-pop-delay-3 { animation: none; }
 }
 
 /* Cursor blink for rolling status feed */
@@ -80,69 +104,78 @@ a { color: var(--primary); text-decoration: none; }
 /* Pass check icon entrance */
 @keyframes iconPop {
   0% { transform: scale(0); }
-  70% { transform: scale(1.15); }
+  70% { transform: scale(1.2); }
   100% { transform: scale(1); }
 }
 .icon-pop {
-  animation: iconPop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: iconPop 350ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 /* Row flash (pass) */
 @keyframes passFlash {
-  0% { background-color: rgba(45, 138, 78, 0.12); }
+  0% { background-color: rgba(22, 163, 74, 0.15); }
   100% { background-color: transparent; }
 }
 .pass-flash {
-  animation: passFlash 150ms ease-out both;
+  animation: passFlash 200ms ease-out both;
 }
 
 /* Row flash (warning) */
 @keyframes warnFlash {
-  0% { background-color: rgba(194, 122, 26, 0.12); }
+  0% { background-color: rgba(217, 119, 6, 0.15); }
   100% { background-color: transparent; }
 }
 .warn-flash {
-  animation: warnFlash 150ms ease-out both;
+  animation: warnFlash 200ms ease-out both;
 }
 
 /* Row flash (fail) */
 @keyframes failFlash {
-  0% { background-color: rgba(192, 57, 43, 0.12); }
+  0% { background-color: rgba(220, 38, 38, 0.15); }
   100% { background-color: transparent; }
 }
 .fail-flash {
-  animation: failFlash 200ms ease-out both;
+  animation: failFlash 250ms ease-out both;
 }
 
 /* Icon shake (fail) */
 @keyframes iconShake {
   0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-3px); }
-  40% { transform: translateX(3px); }
-  60% { transform: translateX(-2px); }
-  80% { transform: translateX(2px); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
 }
 .icon-shake {
-  animation: iconShake 350ms ease both;
+  animation: iconShake 400ms ease both;
 }
 
 /* Icon nudge (warning) */
 @keyframes iconNudge {
   0%, 100% { transform: translateX(0); }
-  33% { transform: translateX(-2px); }
-  66% { transform: translateX(2px); }
+  33% { transform: translateX(-3px); }
+  66% { transform: translateX(3px); }
 }
 .icon-nudge {
-  animation: iconNudge 250ms ease both;
+  animation: iconNudge 300ms ease both;
 }
 
 /* Score ring glow pulse (single) */
 @keyframes ringGlow {
-  0% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4); }
-  100% { box-shadow: 0 0 0 12px rgba(var(--primary-rgb), 0); }
+  0% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.5); }
+  100% { box-shadow: 0 0 0 16px rgba(var(--primary-rgb), 0); }
 }
 .ring-glow {
-  animation: ringGlow 600ms ease-out both;
+  animation: ringGlow 700ms ease-out both;
+}
+
+/* Score ring breathing glow (persistent loop for scores ≥ 70) */
+@keyframes ringBreathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.25); }
+  50% { box-shadow: 0 0 0 12px rgba(var(--primary-rgb), 0); }
+}
+.ring-breathe {
+  animation: ringBreathe 2.5s ease-in-out infinite;
 }
 
 /* Status label pulse (score < 50) */
@@ -156,9 +189,64 @@ a { color: var(--primary); text-decoration: none; }
 
 /* Slide up for status label reveal */
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 .slide-up {
-  animation: slideUp 0.35s ease-out both;
+  animation: slideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Decorative blob animation */
+@keyframes blobFloat {
+  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  33% { transform: translate(25px, -35px) scale(1.08) rotate(5deg); }
+  66% { transform: translate(-20px, 20px) scale(0.95) rotate(-3deg); }
+}
+.blob-float {
+  animation: blobFloat 10s ease-in-out infinite;
+}
+
+/* Diamond spin */
+@keyframes diamondSpin {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(45deg) scale(1.1); }
+}
+.diamond-spin {
+  animation: diamondSpin 8s ease-in-out infinite;
+}
+
+/* Pulse ring */
+@keyframes pulseRing {
+  0%, 100% { transform: scale(1); opacity: 0.12; }
+  50% { transform: scale(1.15); opacity: 0.08; }
+}
+.pulse-ring {
+  animation: pulseRing 6s ease-in-out infinite;
+}
+
+/* Wiggle badge */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(8deg); }
+}
+.wiggle-badge {
+  animation: wiggle 2.5s ease-in-out infinite;
+}
+
+/* Subtle card hover lift */
+.card-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+}
+
+/* Grain texture overlay */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }

@@ -1,17 +1,24 @@
 import type { Metadata } from 'next'
-import { Poppins, Inter } from 'next/font/google'
+import { Space_Grotesk, Inter, Caveat } from 'next/font/google'
 import './globals.css'
 
-const poppins = Poppins({
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-poppins',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-display',
   display: 'swap',
 })
 
 const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-body',
+  display: 'swap',
+})
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-hand',
   display: 'swap',
 })
 
@@ -22,7 +29,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${poppins.variable} ${inter.variable}`}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable} ${caveat.variable}`}>
       <body>{children}</body>
     </html>
   )

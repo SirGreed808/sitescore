@@ -14,10 +14,8 @@ export default function ScoreRing({ score }: ScoreRingProps) {
   const [phase, setPhase] = useState<'idle' | 'calculating' | 'counting' | 'done'>('idle')
   const [displayScore, setDisplayScore] = useState(0)
 
-  const radius = 54
+  const radius = 72
   const circumference = 2 * Math.PI * radius
-  // At idle: fully unfilled (stroke-dashoffset === circumference)
-  // At counting/done: filled according to score
   const filled = phase === 'idle'
     ? circumference
     : circumference - (score / 100) * circumference
@@ -26,20 +24,19 @@ export default function ScoreRing({ score }: ScoreRingProps) {
     score >= 70 ? 'score-high' : score >= 40 ? 'score-mid' : 'score-low'
 
   const strokeColor =
-    score >= 70 ? '#2D8A4E' : score >= 40 ? '#C27A1A' : '#C0392B'
+    score >= 70 ? '#16A34A' : score >= 40 ? '#D97706' : '#DC2626'
+
+  const bgFillColor =
+    score >= 70 ? 'rgba(22, 163, 74, 0.08)' : score >= 40 ? 'rgba(217, 119, 6, 0.08)' : 'rgba(220, 38, 38, 0.08)'
 
   const rafRef = useRef<number>(0)
 
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = []
 
-    // T+400ms: show "Calculating..."
     timers.push(setTimeout(() => setPhase('calculating'), 400))
-
-    // T+900ms: hide "Calculating..."
     timers.push(setTimeout(() => setPhase('idle'), 900))
 
-    // T+1000ms: start ring fill + count-up
     timers.push(
       setTimeout(() => {
         setPhase('counting')
@@ -62,7 +59,6 @@ export default function ScoreRing({ score }: ScoreRingProps) {
       }, 1000)
     )
 
-    // T+2500ms: reveal status label
     timers.push(setTimeout(() => setPhase('done'), 2500))
 
     return () => {
@@ -72,31 +68,46 @@ export default function ScoreRing({ score }: ScoreRingProps) {
   }, [score])
 
   const showGlow = phase === 'done' && score >= 70
+  const showBreathe = phase === 'done' && score >= 70
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-3">
       <div
         className={showGlow ? 'ring-glow' : ''}
-        style={{ borderRadius: '50%', width: 128, height: 128 }}
+        style={{
+          borderRadius: '50%',
+          width: 176,
+          height: 176,
+          background: bgFillColor,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
       >
-        <svg width="128" height="128" viewBox="0 0 128 128">
+        <svg width="176" height="176" viewBox="0 0 176 176">
+          <defs>
+            <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--primary)" />
+              <stop offset="100%" stopColor="var(--accent)" />
+            </linearGradient>
+          </defs>
           {/* Track */}
           <circle
-            cx="64" cy="64" r={radius}
+            cx="88" cy="88" r={radius}
             fill="none"
             stroke="var(--border)"
-            strokeWidth="10"
+            strokeWidth="14"
           />
           {/* Progress */}
           <circle
-            cx="64" cy="64" r={radius}
+            cx="88" cy="88" r={radius}
             fill="none"
-            stroke={strokeColor}
-            strokeWidth="10"
+            stroke="url(#scoreGrad)"
+            strokeWidth="14"
             strokeDasharray={circumference}
             strokeDashoffset={filled}
             strokeLinecap="round"
-            transform="rotate(-90 64 64)"
+            transform="rotate(-90 88 88)"
             style={{
               transition: phase === 'counting'
                 ? 'stroke-dashoffset 1400ms cubic-bezier(0.4, 0, 0.2, 1)'
@@ -104,20 +115,22 @@ export default function ScoreRing({ score }: ScoreRingProps) {
             }}
           />
           <text
-            x="64" y="64"
+            x="88" y="84"
             dominantBaseline="middle"
             textAnchor="middle"
-            fontSize="28"
+            fontSize="48"
             fontWeight="700"
+            fontFamily="var(--font-display), system-ui, sans-serif"
             fill={strokeColor}
           >
             {phase === 'idle' ? '—' : displayScore}
           </text>
           <text
-            x="64" y="82"
+            x="88" y="108"
             dominantBaseline="middle"
             textAnchor="middle"
-            fontSize="11"
+            fontSize="14"
+            fontWeight="500"
             fill="var(--muted)"
           >
             / 100
@@ -125,12 +138,26 @@ export default function ScoreRing({ score }: ScoreRingProps) {
         </svg>
       </div>
 
+      {/* Breathing glow for high scores */}
+      {showBreathe && (
+        <div
+          className="ring-breathe"
+          style={{
+            position: 'absolute',
+            width: 176,
+            height: 176,
+            borderRadius: '50%',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+
       {/* Calculating indicator */}
       <div
         style={{
           opacity: phase === 'calculating' ? 1 : 0,
           transition: 'opacity 300ms ease',
-          height: '16px',
+          height: '20px',
         }}
       >
         <span className="font-mono text-xs" style={{ color: 'var(--muted)' }}>
@@ -142,7 +169,12 @@ export default function ScoreRing({ score }: ScoreRingProps) {
       {phase === 'done' && (
         <span
           className={`${colorClass} ${score < 50 ? 'status-pulse' : ''} slide-up`}
-          style={{ fontWeight: 600, fontSize: '14px' }}
+          style={{
+            fontWeight: 700,
+            fontSize: '16px',
+            fontFamily: 'var(--font-display), system-ui, sans-serif',
+            letterSpacing: '-0.01em',
+          }}
         >
           {score >= 70 ? 'Good' : score >= 40 ? 'Needs Work' : 'Poor'}
         </span>

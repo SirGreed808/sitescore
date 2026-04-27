@@ -25,7 +25,17 @@ export interface AuditRequest {
 }
 
 // City themes
-export type ThemeKey = 'los-angeles' | 'new-york' | 'miami' | 'seattle' | 'chicago' | 'austin' | 'denver' | 'portland' | 'nashville' | 'new-orleans' | 'san-francisco' | 'boston' | 'atlanta' | 'phoenix' | 'las-vegas' | 'honolulu' | 'default'
+export type ThemeKey =
+  | 'los-angeles' | 'new-york' | 'miami' | 'seattle' | 'chicago' | 'austin'
+  | 'denver' | 'portland' | 'nashville' | 'new-orleans' | 'san-francisco' | 'boston'
+  | 'atlanta' | 'phoenix' | 'las-vegas' | 'honolulu'
+  | 'dallas' | 'houston' | 'san-diego' | 'san-jose' | 'philadelphia' | 'san-antonio'
+  | 'detroit' | 'columbus' | 'indianapolis' | 'jacksonville' | 'fort-worth' | 'charlotte'
+  | 'el-paso' | 'memphis' | 'baltimore' | 'milwaukee' | 'tucson' | 'fresno'
+  | 'sacramento' | 'mesa' | 'kansas-city' | 'washington-dc' | 'tampa' | 'riverside'
+  | 'raleigh' | 'long-beach' | 'virginia-beach' | 'oakland' | 'minneapolis' | 'tulsa'
+  | 'st-louis' | 'pittsburgh' | 'cleveland' | 'anaheim'
+  | 'default'
 
 export interface CityTheme {
   key: ThemeKey
