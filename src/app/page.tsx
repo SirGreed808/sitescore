@@ -9,12 +9,6 @@ import CheckItem from '@/components/CheckItem'
 
 type Status = 'idle' | 'streaming' | 'done' | 'error'
 
-interface HistoryItem {
-  url: string
-  city: string
-  score: number
-  id: string
-}
 
 const ROLLING_MESSAGES = [
   '> Connecting to target...',
@@ -48,7 +42,6 @@ export default function Home() {
   const [streamedChecks, setStreamedChecks] = useState<AuditCheck[]>([])
   const [result, setResult] = useState<AuditResult | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
-  const [history, setHistory] = useState<HistoryItem[]>([])
   const [mounted, setMounted] = useState(false)
 
   const urlInputRef = useRef<HTMLInputElement>(null)
@@ -56,15 +49,8 @@ export default function Home() {
 
   const theme = getThemeForCity(city || 'los angeles')
 
-  /* Hydration-safe: load localStorage after mount */
   useEffect(() => {
     setMounted(true)
-    setUrl(localStorage.getItem('ss_url') ?? '')
-    setCity(localStorage.getItem('ss_city') ?? '')
-    try {
-      const raw = localStorage.getItem('ss_history')
-      if (raw) setHistory(JSON.parse(raw))
-    } catch { /* ignore */ }
   }, [])
 
   /* Auto-focus URL input after mount */
@@ -153,8 +139,6 @@ export default function Home() {
     setStreamedChecks([])
     setResult(null)
     setErrorMsg('')
-    localStorage.setItem('ss_url', normalized)
-    localStorage.setItem('ss_city', auditCity)
     startRollingMessages()
 
     try {
@@ -192,18 +176,6 @@ export default function Home() {
             setResult(event.result)
             setStatus('done')
 
-            if (event.result.id) {
-              setHistory(prev => {
-                const next = [{
-                  url: event.result.url,
-                  city: event.result.city,
-                  score: event.result.score,
-                  id: event.result.id,
-                }, ...prev].slice(0, 3)
-                localStorage.setItem('ss_history', JSON.stringify(next))
-                return next
-              })
-            }
           } else if (event.type === 'error') {
             throw new Error(event.error)
           }
@@ -452,44 +424,6 @@ export default function Home() {
         </button>
       </form>
 
-      {/* History chips */}
-      {history.length > 0 && (
-        <div className="w-full max-w-lg flex items-center gap-2 flex-wrap slide-up relative z-10">
-          <span className="text-xs font-bold" style={{ color: 'var(--muted)' }}>Recent:</span>
-          {history.map((item, i) => {
-            const scoreColor = item.score >= 70 ? '#16A34A' : item.score >= 40 ? '#D97706' : '#DC2626'
-            return (
-              <button
-                key={`${item.id}-${i}`}
-                onClick={() => runAudit(item.url, item.city)}
-                className="cursor-pointer"
-                style={{
-                  border: '2px solid var(--border)',
-                  borderRadius: '24px',
-                  padding: '5px 14px',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  background: 'var(--card)',
-                  color: 'var(--text)',
-                  whiteSpace: 'nowrap',
-                  transition: 'opacity 200ms ease, transform 200ms ease',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'scale(1.02)' }}
-                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1)' }}
-              >
-                {(() => {
-                  try {
-                    return new URL(item.url).hostname.replace(/^www\./, '')
-                  } catch {
-                    return item.url
-                  }
-                })()} / {item.city}{' '}
-                <span style={{ color: scoreColor, fontWeight: 700 }}>— {item.score}</span>
-              </button>
-            )
-          })}
-        </div>
-      )}
 
       {status === 'error' && (
         <p className="text-sm font-bold relative z-10" style={{ color: '#DC2626' }}>{errorMsg}</p>
